@@ -8,7 +8,7 @@ class Terrain {
   final Random _random = Random();
 
   int currentSegment = 0;
-  final List<String> terrainTypes = ['hills', 'mountains', 'desert', 'valley'];
+  final List<String> terrainTypes = ['hills', 'mountains', 'desert', 'valley', 'snow', 'night'];
 
   Terrain() {
     generate();
@@ -25,7 +25,7 @@ class Terrain {
 
   void generateSegment(int segmentIndex) {
     double startX = segmentIndex == 0 ? 0 : points.last.dx;
-    double startY = segmentIndex == 0 ? 200 : points.last.dy;  // Changed to 300
+    double startY = segmentIndex == 0 ? 200 : points.last.dy;
 
     String terrainType = terrainTypes[segmentIndex % terrainTypes.length];
 
@@ -60,6 +60,12 @@ class Terrain {
           break;
         case 'valley':
           heightChange = cos(i * 0.25) * 50 + (_random.nextDouble() - 0.5) * 25;
+          break;
+        case 'snow':
+          heightChange = sin(i * 0.18) * 45 + cos(i * 0.25) * 25 + (_random.nextDouble() - 0.5) * 35;
+          break;
+        case 'night':
+          heightChange = sin(i * 0.12) * 50 + (_random.nextDouble() - 0.5) * 30;
           break;
       }
 
@@ -105,5 +111,13 @@ class Terrain {
 
   String getCurrentTerrainType() {
     return terrainTypes[currentSegment % terrainTypes.length];
+  }
+
+  bool isNightTheme() {
+    return getCurrentTerrainType() == 'night';
+  }
+
+  bool isSnowTheme() {
+    return getCurrentTerrainType() == 'snow';
   }
 }

@@ -44,6 +44,15 @@ class PhysicsEngine {
       double slopeDx = 40;
       double targetRotation = atan2(slopeDy, slopeDx);
 
+      // Add tilt based on acceleration/braking
+      if (isAccelerating && vehicle.velocityX > 1) {
+        // Tilt back (nose up) when accelerating
+        targetRotation -= 0.08;
+      } else if (isReversing) {
+        // Tilt forward (nose down) when braking
+        targetRotation += 0.08;
+      }
+
       // Smooth rotation transition
       double rotationDiff = targetRotation - vehicle.rotation;
       while (rotationDiff > pi) rotationDiff -= 2 * pi;
@@ -79,11 +88,11 @@ class PhysicsEngine {
       // Air physics
       vehicle.velocityX *= airResistance;
 
-      // Rotation in air based on controls
+      // Rotation in air based on controls - enhanced tilt
       if (isAccelerating) {
-        vehicle.angularVelocity -= 0.002;
+        vehicle.angularVelocity -= 0.003; // Back flip
       } else if (isReversing) {
-        vehicle.angularVelocity += 0.002;
+        vehicle.angularVelocity += 0.003; // Front flip
       }
 
       vehicle.rotation += vehicle.angularVelocity;

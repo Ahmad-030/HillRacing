@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../Game/Game_Controller.dart';
+import '../Game/GameOver.dart';
 import '../Widget/GameCanvas.dart';
 
 class GameScreen extends StatefulWidget {
@@ -17,7 +18,6 @@ class _GameScreenState extends State<GameScreen> {
   void initState() {
     super.initState();
 
-    // Lock to landscape orientation
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
@@ -55,7 +55,16 @@ class _GameScreenState extends State<GameScreen> {
           GameCanvas(controller: controller),
 
           // Game Over Overlay
-          if (controller.isGameOver) _buildGameOverOverlay(),
+          if (controller.isGameOver)
+            GameOverScreen(
+              distance: controller.distance,
+              coins: controller.coins,
+              onRestart: () {
+                setState(() {
+                  controller.restart();
+                });
+              },
+            ),
 
           // HUD - Top Stats
           if (!controller.isGameOver) _buildHUD(),
@@ -72,7 +81,7 @@ class _GameScreenState extends State<GameScreen> {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final isSmallScreen = constraints.maxWidth < 700;
-          final statPadding = isSmallScreen ? 8.0 : 16.0;
+          final statPadding = isSmallScreen ? 6.0 : 12.0;
 
           return Padding(
             padding: EdgeInsets.all(statPadding),
@@ -92,7 +101,7 @@ class _GameScreenState extends State<GameScreen> {
                       color: Colors.blue,
                       isSmall: isSmallScreen,
                     ),
-                    SizedBox(height: isSmallScreen ? 6 : 8),
+                    SizedBox(height: isSmallScreen ? 5 : 7),
                     _buildStatCard(
                       icon: Icons.monetization_on,
                       label: 'Coins',
@@ -109,7 +118,7 @@ class _GameScreenState extends State<GameScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     _buildFuelBar(isSmall: isSmallScreen),
-                    SizedBox(height: isSmallScreen ? 6 : 8),
+                    SizedBox(height: isSmallScreen ? 5 : 7),
                     _buildStatCard(
                       icon: Icons.speed,
                       label: 'Speed',
@@ -136,17 +145,17 @@ class _GameScreenState extends State<GameScreen> {
   }) {
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: isSmall ? 8 : 12,
-        vertical: isSmall ? 6 : 8,
+        horizontal: isSmall ? 7 : 10,
+        vertical: isSmall ? 5 : 7,
       ),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.6),
-        borderRadius: BorderRadius.circular(isSmall ? 8 : 12),
-        border: Border.all(color: color.withOpacity(0.5), width: 2),
+        color: Colors.black.withOpacity(0.65),
+        borderRadius: BorderRadius.circular(isSmall ? 7 : 10),
+        border: Border.all(color: color.withOpacity(0.6), width: 1.5),
         boxShadow: [
           BoxShadow(
             color: color.withOpacity(0.3),
-            blurRadius: 8,
+            blurRadius: 6,
             spreadRadius: 1,
           ),
         ],
@@ -154,8 +163,8 @@ class _GameScreenState extends State<GameScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: color, size: isSmall ? 16 : 20),
-          SizedBox(width: isSmall ? 6 : 8),
+          Icon(icon, color: color, size: isSmall ? 14 : 18),
+          SizedBox(width: isSmall ? 5 : 7),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -163,8 +172,8 @@ class _GameScreenState extends State<GameScreen> {
               Text(
                 label,
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.7),
-                  fontSize: isSmall ? 8 : 10,
+                  color: Colors.white.withOpacity(0.75),
+                  fontSize: isSmall ? 7 : 9,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -172,7 +181,7 @@ class _GameScreenState extends State<GameScreen> {
                 value,
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: isSmall ? 13 : 16,
+                  fontSize: isSmall ? 12 : 15,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -185,16 +194,16 @@ class _GameScreenState extends State<GameScreen> {
 
   Widget _buildFuelBar({bool isSmall = false}) {
     return Container(
-      width: isSmall ? 120 : 150,
-      padding: EdgeInsets.all(isSmall ? 6 : 8),
+      width: isSmall ? 110 : 140,
+      padding: EdgeInsets.all(isSmall ? 5 : 7),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.6),
-        borderRadius: BorderRadius.circular(isSmall ? 8 : 12),
+        color: Colors.black.withOpacity(0.65),
+        borderRadius: BorderRadius.circular(isSmall ? 7 : 10),
         border: Border.all(
           color: controller.fuel > 30
-              ? Colors.green.withOpacity(0.5)
-              : Colors.red.withOpacity(0.5),
-          width: 2,
+              ? Colors.green.withOpacity(0.6)
+              : Colors.red.withOpacity(0.6),
+          width: 1.5,
         ),
       ),
       child: Column(
@@ -206,25 +215,25 @@ class _GameScreenState extends State<GameScreen> {
               Icon(
                 Icons.local_gas_station,
                 color: controller.fuel > 30 ? Colors.green : Colors.red,
-                size: isSmall ? 14 : 18,
+                size: isSmall ? 13 : 16,
               ),
-              SizedBox(width: isSmall ? 4 : 6),
+              SizedBox(width: isSmall ? 4 : 5),
               Text(
                 'FUEL: ${controller.fuel.toInt()}%',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: isSmall ? 10 : 12,
+                  fontSize: isSmall ? 9 : 11,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ],
           ),
-          SizedBox(height: isSmall ? 4 : 6),
+          SizedBox(height: isSmall ? 3 : 5),
           ClipRRect(
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(5),
             child: LinearProgressIndicator(
               value: controller.fuel / 100,
-              minHeight: isSmall ? 6 : 8,
+              minHeight: isSmall ? 5 : 7,
               backgroundColor: Colors.grey.shade800,
               valueColor: AlwaysStoppedAnimation<Color>(
                 controller.fuel > 30 ? Colors.green : Colors.red,
@@ -240,10 +249,10 @@ class _GameScreenState extends State<GameScreen> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isSmallScreen = constraints.maxWidth < 700;
-        final buttonSize = isSmallScreen ? 65.0 : 80.0;
-        final jumpSize = isSmallScreen ? 60.0 : 70.0;
-        final bottomPadding = isSmallScreen ? 20.0 : 30.0;
-        final sidePadding = isSmallScreen ? 15.0 : 25.0;
+        final buttonSize = isSmallScreen ? 60.0 : 75.0;
+        final jumpSize = isSmallScreen ? 55.0 : 65.0;
+        final bottomPadding = isSmallScreen ? 18.0 : 25.0;
+        final sidePadding = isSmallScreen ? 12.0 : 20.0;
 
         return Stack(
           children: [
@@ -281,7 +290,7 @@ class _GameScreenState extends State<GameScreen> {
                       isPressed: controller.isReversing,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                   // Gas
                   GestureDetector(
                     onTapDown: (_) => setState(() => controller.isAccelerating = true),
@@ -312,7 +321,7 @@ class _GameScreenState extends State<GameScreen> {
     bool isPressed = false,
   }) {
     return AnimatedScale(
-      scale: isPressed ? 0.9 : 1.0,
+      scale: isPressed ? 0.88 : 1.0,
       duration: const Duration(milliseconds: 100),
       child: Container(
         width: size,
@@ -323,30 +332,30 @@ class _GameScreenState extends State<GameScreen> {
             colors: isPressed
                 ? [
               color.withOpacity(1.0),
-              color.withOpacity(0.8),
+              color.withOpacity(0.85),
             ]
                 : [
-              color.withOpacity(0.9),
-              color.withOpacity(0.7),
-              color.withOpacity(0.5),
+              color.withOpacity(0.95),
+              color.withOpacity(0.75),
+              color.withOpacity(0.55),
             ],
             stops: const [0.0, 0.7, 1.0],
           ),
           boxShadow: [
             BoxShadow(
               color: color.withOpacity(isPressed ? 0.7 : 0.6),
-              blurRadius: isPressed ? 20 : 18,
-              spreadRadius: isPressed ? 3 : 2,
+              blurRadius: isPressed ? 18 : 16,
+              spreadRadius: isPressed ? 2 : 1,
             ),
             BoxShadow(
               color: Colors.black.withOpacity(0.4),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
             ),
           ],
           border: Border.all(
-            color: Colors.white.withOpacity(0.4),
-            width: 3,
+            color: Colors.white.withOpacity(0.45),
+            width: 2.5,
           ),
         ),
         child: Column(
@@ -355,264 +364,26 @@ class _GameScreenState extends State<GameScreen> {
             Icon(
               icon,
               color: Colors.white,
-              size: size * 0.45,
+              size: size * 0.42,
             ),
-            SizedBox(height: size * 0.05),
+            SizedBox(height: size * 0.04),
             Text(
               label,
               style: TextStyle(
                 color: Colors.white,
-                fontSize: size * 0.14,
+                fontSize: size * 0.13,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 0.5,
                 shadows: [
                   Shadow(
                     color: Colors.black.withOpacity(0.7),
-                    blurRadius: 5,
+                    blurRadius: 4,
                   ),
                 ],
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildGameOverOverlay() {
-    return Container(
-      color: Colors.black.withOpacity(0.9),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final isSmallScreen = constraints.maxWidth < 700;
-          final titleSize = isSmallScreen ? 28.0 : 36.0;
-          final iconSize = isSmallScreen ? 50.0 : 70.0;
-          final statFontSize = isSmallScreen ? 12.0 : 14.0;
-          final valueFontSize = isSmallScreen ? 16.0 : 20.0;
-          final containerWidth = isSmallScreen
-              ? constraints.maxWidth * 0.75
-              : constraints.maxWidth * 0.45;
-
-          return Center(
-            child: SingleChildScrollView(
-              child: Container(
-                width: containerWidth,
-                padding: EdgeInsets.all(isSmallScreen ? 16 : 24),
-                margin: EdgeInsets.symmetric(
-                  horizontal: isSmallScreen ? 15 : 30,
-                  vertical: 15,
-                ),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      const Color(0xFF1a1a1a),
-                      const Color(0xFF0d0d0d),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.red.withOpacity(0.6), width: 2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.red.withOpacity(0.4),
-                      blurRadius: 25,
-                      spreadRadius: 3,
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Animated Icon
-                    TweenAnimationBuilder(
-                      duration: const Duration(milliseconds: 600),
-                      tween: Tween<double>(begin: 0, end: 1),
-                      builder: (context, double value, child) {
-                        return Transform.scale(
-                          scale: value,
-                          child: Container(
-                            padding: EdgeInsets.all(isSmallScreen ? 10 : 14),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: RadialGradient(
-                                colors: [
-                                  Colors.red.withOpacity(0.3),
-                                  Colors.transparent,
-                                ],
-                              ),
-                            ),
-                            child: Icon(
-                              Icons.warning_rounded,
-                              color: Colors.red,
-                              size: iconSize,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-
-                    SizedBox(height: isSmallScreen ? 8 : 12),
-
-                    // Title
-                    Text(
-                      'GAME OVER',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: titleSize,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 2,
-                        shadows: [
-                          Shadow(
-                            color: Colors.red.withOpacity(0.8),
-                            blurRadius: 15,
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    SizedBox(height: isSmallScreen ? 6 : 10),
-
-                    Text(
-                      'Better luck next time!',
-                      style: TextStyle(
-                        color: Colors.grey[400],
-                        fontSize: isSmallScreen ? 12 : 14,
-                      ),
-                    ),
-
-                    SizedBox(height: isSmallScreen ? 16 : 20),
-
-                    // Stats
-                    _buildGameOverStat(
-                      'Distance',
-                      '${controller.distance.toInt()}m',
-                      Icons.straighten,
-                      Colors.blue,
-                      statFontSize,
-                      valueFontSize,
-                      isSmallScreen,
-                    ),
-                    SizedBox(height: isSmallScreen ? 8 : 10),
-                    _buildGameOverStat(
-                      'Coins',
-                      '${controller.coins}',
-                      Icons.monetization_on,
-                      Colors.amber,
-                      statFontSize,
-                      valueFontSize,
-                      isSmallScreen,
-                    ),
-
-                    SizedBox(height: isSmallScreen ? 20 : 26),
-
-                    // Restart Button
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          controller.restart();
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: isSmallScreen ? 24 : 36,
-                          vertical: isSmallScreen ? 10 : 14,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        elevation: 6,
-                        shadowColor: Colors.green.withOpacity(0.5),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.refresh, size: isSmallScreen ? 18 : 24),
-                          SizedBox(width: isSmallScreen ? 6 : 10),
-                          Text(
-                            'RESTART',
-                            style: TextStyle(
-                              fontSize: isSmallScreen ? 16 : 20,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.2,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildGameOverStat(
-      String label,
-      String value,
-      IconData icon,
-      Color color,
-      double labelSize,
-      double valueSize,
-      bool isSmall,
-      ) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: isSmall ? 12 : 16,
-        vertical: isSmall ? 8 : 10,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.4),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: color.withOpacity(0.3),
-          width: 1.5,
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: EdgeInsets.all(isSmall ? 6 : 8),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, color: color, size: isSmall ? 16 : 18),
-              ),
-              SizedBox(width: isSmall ? 8 : 12),
-              Text(
-                label,
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: labelSize,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: valueSize,
-              fontWeight: FontWeight.bold,
-              shadows: [
-                Shadow(
-                  color: color.withOpacity(0.5),
-                  blurRadius: 6,
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

@@ -19,12 +19,14 @@ class GameOverScreen extends StatelessWidget {
         final screenWidth = constraints.maxWidth;
         final screenHeight = constraints.maxHeight;
 
-        // Responsive sizing
-        final titleSize = screenWidth < 400 ? 40.0 : 56.0;
-        final subtitleSize = screenWidth < 400 ? 18.0 : 24.0;
-        final statSize = screenWidth < 400 ? 28.0 : 36.0;
-        final labelSize = screenWidth < 400 ? 14.0 : 16.0;
-        final containerWidth = screenWidth < 400 ? screenWidth * 0.85 : 350.0;
+        // Ultra responsive sizing
+        final iconSize = (screenHeight * 0.10).clamp(35.0, 70.0);
+        final titleSize = (screenHeight * 0.08).clamp(22.0, 40.0);
+        final subtitleSize = (screenHeight * 0.035).clamp(10.0, 16.0);
+        final statLabelSize = (screenHeight * 0.03).clamp(9.0, 13.0);
+        final statValueSize = (screenHeight * 0.045).clamp(12.0, 18.0);
+        final buttonTextSize = (screenHeight * 0.045).clamp(14.0, 20.0);
+        final spacing = screenHeight * 0.015;
 
         return Container(
           width: double.infinity,
@@ -34,182 +36,188 @@ class GameOverScreen extends StatelessWidget {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Colors.black.withOpacity(0.85),
-                Colors.black.withOpacity(0.95),
+                Colors.black.withOpacity(0.92),
+                Colors.black.withOpacity(0.96),
               ],
             ),
           ),
           child: Center(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Animated icon
-                    TweenAnimationBuilder(
-                      duration: const Duration(milliseconds: 800),
-                      tween: Tween<double>(begin: 0, end: 1),
-                      builder: (context, double value, child) {
-                        return Transform.scale(
-                          scale: value,
-                          child: Container(
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: RadialGradient(
-                                colors: [
-                                  Colors.red.withOpacity(0.3),
-                                  Colors.transparent,
-                                ],
-                              ),
-                            ),
-                            child: Icon(
-                              Icons.warning_rounded,
-                              size: screenWidth < 400 ? 70 : 90,
-                              color: Colors.red,
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: screenWidth * 0.05,
+                vertical: screenHeight * 0.05,
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Animated icon
+                  TweenAnimationBuilder(
+                    duration: const Duration(milliseconds: 600),
+                    tween: Tween<double>(begin: 0, end: 1),
+                    builder: (context, double value, child) {
+                      return Transform.scale(
+                        scale: value,
+                        child: Container(
+                          padding: EdgeInsets.all(iconSize * 0.2),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: RadialGradient(
+                              colors: [
+                                Colors.red.withOpacity(0.3),
+                                Colors.transparent,
+                              ],
                             ),
                           ),
-                        );
-                      },
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // Game Over Title
-                    Text(
-                      'GAME OVER',
-                      style: TextStyle(
-                        fontSize: titleSize,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        letterSpacing: 3,
-                        shadows: [
-                          Shadow(
-                            color: Colors.red.withOpacity(0.8),
-                            blurRadius: 20,
+                          child: Icon(
+                            Icons.warning_rounded,
+                            size: iconSize,
+                            color: Colors.red,
                           ),
-                          const Shadow(
-                            color: Colors.black,
-                            blurRadius: 10,
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 10),
-
-                    Text(
-                      'Better luck next time!',
-                      style: TextStyle(
-                        fontSize: subtitleSize,
-                        color: Colors.grey[400],
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-
-                    const SizedBox(height: 40),
-
-                    // Stats container
-                    Container(
-                      width: containerWidth,
-                      padding: EdgeInsets.all(screenWidth < 400 ? 20 : 30),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.05),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.1),
-                          width: 2,
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.3),
-                            blurRadius: 20,
-                            spreadRadius: 5,
-                          ),
-                        ],
+                      );
+                    },
+                  ),
+
+                  SizedBox(height: spacing * 2),
+
+                  // Game Over Title
+                  Text(
+                    'GAME OVER',
+                    style: TextStyle(
+                      fontSize: titleSize,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: 2,
+                      shadows: [
+                        Shadow(
+                          color: Colors.red.withOpacity(0.8),
+                          blurRadius: 15,
+                        ),
+                        const Shadow(
+                          color: Colors.black,
+                          blurRadius: 8,
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  SizedBox(height: spacing),
+
+                  Text(
+                    'Better luck next time!',
+                    style: TextStyle(
+                      fontSize: subtitleSize,
+                      color: Colors.grey[400],
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+
+                  SizedBox(height: spacing * 3),
+
+                  // Stats container
+                  Container(
+                    width: (screenWidth * 0.7).clamp(250.0, 400.0),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: screenWidth * 0.04,
+                      vertical: screenHeight * 0.025,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.1),
+                        width: 1.5,
                       ),
-                      child: Column(
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 15,
+                          spreadRadius: 3,
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Distance stat
+                        _buildStatRow(
+                          icon: Icons.straighten,
+                          iconColor: Colors.blue,
+                          label: 'DISTANCE',
+                          value: '${distance.toStringAsFixed(0)}m',
+                          statValueSize: statValueSize,
+                          statLabelSize: statLabelSize,
+                          iconSize: iconSize * 0.4,
+                        ),
+
+                        SizedBox(height: spacing * 2),
+
+                        // Coins stat
+                        _buildStatRow(
+                          icon: Icons.monetization_on,
+                          iconColor: Colors.amber,
+                          label: 'COINS',
+                          value: '$coins',
+                          statValueSize: statValueSize,
+                          statLabelSize: statLabelSize,
+                          iconSize: iconSize * 0.4,
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  SizedBox(height: spacing * 3),
+
+                  // Restart button
+                  TweenAnimationBuilder(
+                    duration: const Duration(milliseconds: 800),
+                    tween: Tween<double>(begin: 0, end: 1),
+                    builder: (context, double value, child) {
+                      return Opacity(
+                        opacity: value,
+                        child: Transform.translate(
+                          offset: Offset(0, 15 * (1 - value)),
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: ElevatedButton(
+                      onPressed: onRestart,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: screenWidth * 0.08,
+                          vertical: screenHeight * 0.025,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        elevation: 8,
+                        shadowColor: Colors.green.withOpacity(0.5),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Distance stat
-                          _buildStatRow(
-                            icon: Icons.straighten,
-                            iconColor: Colors.blue,
-                            label: 'DISTANCE',
-                            value: '${distance.toStringAsFixed(0)}m',
-                            statSize: statSize,
-                            labelSize: labelSize,
+                          Icon(
+                            Icons.refresh,
+                            size: buttonTextSize * 1.2,
                           ),
-
-                          SizedBox(height: screenWidth < 400 ? 20 : 30),
-
-                          // Coins stat
-                          _buildStatRow(
-                            icon: Icons.monetization_on,
-                            iconColor: Colors.amber,
-                            label: 'COINS',
-                            value: '$coins',
-                            statSize: statSize,
-                            labelSize: labelSize,
+                          SizedBox(width: spacing),
+                          Text(
+                            'RESTART',
+                            style: TextStyle(
+                              fontSize: buttonTextSize,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.5,
+                            ),
                           ),
                         ],
                       ),
                     ),
-
-                    const SizedBox(height: 40),
-
-                    // Restart button
-                    TweenAnimationBuilder(
-                      duration: const Duration(milliseconds: 1000),
-                      tween: Tween<double>(begin: 0, end: 1),
-                      builder: (context, double value, child) {
-                        return Opacity(
-                          opacity: value,
-                          child: Transform.translate(
-                            offset: Offset(0, 20 * (1 - value)),
-                            child: child,
-                          ),
-                        );
-                      },
-                      child: ElevatedButton(
-                        onPressed: onRestart,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white,
-                          padding: EdgeInsets.symmetric(
-                            horizontal: screenWidth < 400 ? 50 : 70,
-                            vertical: screenWidth < 400 ? 18 : 22,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          elevation: 10,
-                          shadowColor: Colors.green.withOpacity(0.5),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.refresh,
-                              size: screenWidth < 400 ? 26 : 32,
-                            ),
-                            const SizedBox(width: 12),
-                            Text(
-                              'RESTART',
-                              style: TextStyle(
-                                fontSize: screenWidth < 400 ? 20 : 24,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 2,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 30),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -223,8 +231,9 @@ class GameOverScreen extends StatelessWidget {
     required Color iconColor,
     required String label,
     required String value,
-    required double statSize,
-    required double labelSize,
+    required double statValueSize,
+    required double statLabelSize,
+    required double iconSize,
   }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -232,25 +241,25 @@ class GameOverScreen extends StatelessWidget {
         Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: EdgeInsets.all(iconSize * 0.35),
               decoration: BoxDecoration(
                 color: iconColor.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
                 icon,
                 color: iconColor,
-                size: 28,
+                size: iconSize,
               ),
             ),
-            const SizedBox(width: 15),
+            SizedBox(width: iconSize * 0.4),
             Text(
               label,
               style: TextStyle(
-                fontSize: labelSize,
+                fontSize: statLabelSize,
                 color: Colors.grey[400],
                 fontWeight: FontWeight.w600,
-                letterSpacing: 1.5,
+                letterSpacing: 1,
               ),
             ),
           ],
@@ -258,13 +267,13 @@ class GameOverScreen extends StatelessWidget {
         Text(
           value,
           style: TextStyle(
-            fontSize: statSize,
+            fontSize: statValueSize,
             fontWeight: FontWeight.bold,
             color: Colors.white,
             shadows: [
               Shadow(
                 color: iconColor.withOpacity(0.5),
-                blurRadius: 10,
+                blurRadius: 8,
               ),
             ],
           ),
@@ -273,26 +282,3 @@ class GameOverScreen extends StatelessWidget {
     );
   }
 }
-
-// How to use in your game screen:
-/*
-if (controller.isGameOver && !controller.gameOverShown) {
-  return Stack(
-    children: [
-      // Your game canvas
-      GameCanvas(controller: controller),
-
-      // Game over overlay
-      GameOverScreen(
-        distance: controller.distance,
-        coins: controller.coins,
-        onRestart: () {
-          setState(() {
-            controller.restart();
-          });
-        },
-      ),
-    ],
-  );
-}
-*/

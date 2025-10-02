@@ -1,157 +1,154 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
+import '../Game/PhysicsEngine.dart';
+import '../Models/Terian.dart';
+import '../Models/Vehical.dart';
 
-class GameControls extends StatelessWidget {
-  final VoidCallback onAccelerate;
-  final VoidCallback onBrake;
-  final VoidCallback onJump;
-  final VoidCallback onAccelerateRelease;
-  final VoidCallback onBrakeRelease;
+class GameController {
+  final Vehicle vehicle = Vehicle();
+  final Terrain terrain = Terrain();
+  final PhysicsEngine physics = PhysicsEngine();
 
-  const GameControls({
-    Key? key,
-    required this.onAccelerate,
-    required this.onBrake,
-    required this.onJump,
-    required this.onAccelerateRelease,
-    required this.onBrakeRelease,
-  }) : super(key: key);
+  Timer? _gameTimer;
+  final Function onUpdate;
 
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Responsive sizing based on screen width
-        final screenWidth = constraints.maxWidth;
-        final buttonSize = screenWidth < 400 ? 70.0 : 85.0;
-        final jumpSize = screenWidth < 400 ? 65.0 : 75.0;
-        final bottomPadding = screenWidth < 400 ? 30.0 : 40.0;
-        final sidePadding = screenWidth < 400 ? 20.0 : 30.0;
+  bool isAccelerating = false;
+  bool isReversing = false;
+  bool isJumping = false;
+  bool isGameOver = false;
+  bool gameOverShown = false;
 
-        return Stack(
-          children: [
-            // Left side controls (Brake and Gas together)
-            Positioned(
-              left: sidePadding,
-              bottom: bottomPadding,
-              child: Row(
-                children: [
-                  // Brake button
-                  GestureDetector(
-                    onTapDown: (_) => onBrake(),
-                    onTapUp: (_) => onBrakeRelease(),
-                    onTapCancel: onBrakeRelease,
-                    child: _buildControlButton(
-                      icon: Icons.arrow_back,
-                      label: 'BRAKE',
-                      color: Colors.red,
-                      size: buttonSize,
-                    ),
-                  ),
-                  const SizedBox(width: 15),
-                  // Gas button
-                  GestureDetector(
-                    onTapDown: (_) => onAccelerate(),
-                    onTapUp: (_) => onAccelerateRelease(),
-                    onTapCancel: onAccelerateRelease,
-                    child: _buildControlButton(
-                      icon: Icons.arrow_forward,
-                      label: 'GAS',
-                      color: Colors.green,
-                      size: buttonSize,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+  double fuel = 100.0;
+  double distance = 0.0;
+  int coins = 0;
 
-            // Right side - Jump button
-            Positioned(
-              right: sidePadding,
-              bottom: bottomPadding,
-              child: GestureDetector(
-                onTap: onJump,
-                child: _buildControlButton(
-                  icon: Icons.arrow_upward,
-                  label: 'JUMP',
-                  color: Colors.blue,
-                  size: jumpSize,
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
+  int frameCount = 0;
+  double maxDistanceReached = 0;
+
+  GameController({required this.onUpdate}) {
+    // Initialize vehicle position based on terrain
+    _initializeVehiclePosition();
   }
 
-  Widget _buildControlButton({
-    required IconData icon,
-    required String label,
-    required Color color,
-    required double size,
-  }) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(
-          colors: [
-            color.withOpacity(0.9),
-            color.withOpacity(0.7),
-            color.withOpacity(0.5),
-          ],
-          stops: const [0.0, 0.7, 1.0],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.6),
-            blurRadius: 20,
-            spreadRadius: 3,
-          ),
-          BoxShadow(
-            color: Colors.black.withOpacity(0.4),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-        border: Border.all(
-          color: Colors.white.withOpacity(0.4),
-          width: 3,
-        ),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            color: Colors.white,
-            size: size * 0.45,
-            shadows: [
-              Shadow(
-                color: Colors.black.withOpacity(0.5),
-                blurRadius: 4,
-              ),
-            ],
-          ),
-          SizedBox(height: size * 0.05),
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: size * 0.14,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
-              shadows: [
-                Shadow(
-                  color: Colors.black.withOpacity(0.7),
-                  blurRadius: 6,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+  void _initializeVehiclePosition() {
+    // Get the terrain height at the starting position and place vehicle there
+    double groundHeight = terrain.getHeightAt(vehicle.x);
+    vehicle.y = groundHeight;
+    vehicle.velocityY = 0;
+  }
+
+  void start() {
+    _gameTimer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
+      if (isGameOver) return;
+      _update();
+      onUpdate();
+    });
+  }
+
+  void _update() {
+    frameCount++;
+
+    // Only consume fuel when actively accelerating or reversing (not on idle)
+    if (isAccelerating && fuel > 0 && vehicle.velocityX < 9.5) {
+      fuel -= 0.08;
+    }
+
+    // Reversing consumes more fuel
+    if (isReversing && fuel > 0 && vehicle.velocityX > -4.5) {
+      fuel -= 0.12;
+    }
+
+    // No passive fuel consumption - only when using controls
+
+    if (fuel <= 0) {
+      fuel = 0;
+      isGameOver = true;
+      return;
+    }
+
+    // Update physics with jump and reverse
+    physics.update(vehicle, terrain, isAccelerating && fuel > 0, isReversing && fuel > 0, isJumping);
+
+    // Reset jump after applied
+    if (isJumping) {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        isJumping = false;
+      });
+    }
+
+    // Update distance (only forward movement counts)
+    if (vehicle.velocityX > 0) {
+      distance += vehicle.velocityX * 0.1;
+      if (distance > maxDistanceReached) {
+        maxDistanceReached = distance;
+      }
+    }
+
+    // Collect coins
+    terrain.coins.removeWhere((coin) {
+      double dx = vehicle.x - coin.dx;
+      double dy = vehicle.y - coin.dy;
+      double distanceToVehicle = dx * dx + dy * dy;
+
+      if (distanceToVehicle < 1000) {
+        coins++;
+        fuel = (fuel + 3).clamp(0.0, 100.0);
+        return true;
+      }
+      return false;
+    });
+
+    // Collect fuel cans
+    terrain.fuelCans.removeWhere((fuelCan) {
+      double dx = vehicle.x - fuelCan.dx;
+      double dy = vehicle.y - fuelCan.dy;
+      double distanceToVehicle = dx * dx + dy * dy;
+
+      if (distanceToVehicle < 1000) {
+        fuel = (fuel + 20).clamp(0.0, 100.0);
+        return true;
+      }
+      return false;
+    });
+
+    // Check if flipped
+    double normalizedRotation = vehicle.rotation % (2 * 3.14159);
+    if (normalizedRotation > 3.14159) normalizedRotation -= 2 * 3.14159;
+    if (normalizedRotation < -3.14159) normalizedRotation += 2 * 3.14159;
+
+    if (normalizedRotation.abs() > 2.3) {
+      isGameOver = true;
+    }
+
+    // Prevent getting stuck
+    if (vehicle.velocityX.abs() < 0.1 && frameCount % 180 == 0 && distance > 10) {
+      vehicle.velocityX += 1.0;
+    }
+  }
+
+  void jump() {
+    isJumping = true;
+  }
+
+  void restart() {
+    vehicle.reset();
+    terrain.generate();
+
+    // Re-initialize vehicle position on new terrain
+    _initializeVehiclePosition();
+
+    fuel = 100;
+    distance = 0;
+    coins = 0;
+    isGameOver = false;
+    gameOverShown = false;
+    isAccelerating = false;
+    isReversing = false;
+    isJumping = false;
+    frameCount = 0;
+    physics.canJump = true;
+  }
+
+  void dispose() {
+    _gameTimer?.cancel();
   }
 }
