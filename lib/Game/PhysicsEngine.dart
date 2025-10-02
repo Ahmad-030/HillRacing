@@ -5,17 +5,18 @@ import '../Models/Vehical.dart';
 class PhysicsEngine {
   static const double gravity = 0.5;
   static const double acceleration = 0.3;
-  static const double brakeForce = 0.35;
+  static const double reverseForce = 0.25;
   static const double airResistance = 0.99;
   static const double groundFriction = 0.94;
   static const double rotationDamping = 0.92;
   static const double maxSpeed = 10.0;
+  static const double maxReverseSpeed = 5.0;
   static const double jumpForce = -12.0;
-  static const double groundThreshold = 5.0;  // Reduced from 10.0 for better ground detection
+  static const double groundThreshold = 5.0;
 
   bool canJump = true;
 
-  void update(Vehicle vehicle, Terrain terrain, bool isAccelerating, bool isBraking, bool isJumping) {
+  void update(Vehicle vehicle, Terrain terrain, bool isAccelerating, bool isReversing, bool isJumping) {
     // Apply gravity
     vehicle.velocityY += gravity;
 
@@ -23,7 +24,7 @@ class PhysicsEngine {
     double groundY = terrain.getHeightAt(vehicle.x);
     double distanceToGround = vehicle.y - groundY;
 
-    // Check if on ground - vehicle.y should be close to groundY
+    // Check if on ground
     bool onGround = distanceToGround.abs() < groundThreshold && vehicle.velocityY >= -1;
 
     if (onGround) {
@@ -54,13 +55,9 @@ class PhysicsEngine {
         vehicle.velocityX += acceleration;
       }
 
-      // Apply braking - slows down but doesn't go backwards
-      if (isBraking) {
-        if (vehicle.velocityX > 0.5) {
-          vehicle.velocityX -= brakeForce;
-        } else {
-          vehicle.velocityX = max(0, vehicle.velocityX - 0.1);
-        }
+      // Apply reverse
+      if (isReversing) {
+        vehicle.velocityX -= reverseForce;
       }
 
       // Jump
@@ -85,7 +82,7 @@ class PhysicsEngine {
       // Rotation in air based on controls
       if (isAccelerating) {
         vehicle.angularVelocity -= 0.002;
-      } else if (isBraking) {
+      } else if (isReversing) {
         vehicle.angularVelocity += 0.002;
       }
 
@@ -93,8 +90,8 @@ class PhysicsEngine {
       vehicle.angularVelocity *= rotationDamping;
     }
 
-    // Limit max speed (forward only)
-    vehicle.velocityX = vehicle.velocityX.clamp(0.0, maxSpeed);
+    // Limit max speed (both forward and reverse)
+    vehicle.velocityX = vehicle.velocityX.clamp(-maxReverseSpeed, maxSpeed);
 
     // Update position
     vehicle.x += vehicle.velocityX;
@@ -106,9 +103,9 @@ class PhysicsEngine {
       vehicle.velocityY = 0;
     }
 
-    // Prevent vehicle from going backwards past starting point
-    if (vehicle.x < 50) {
-      vehicle.x = 50;
+    // Allow limited backward movement
+    if (vehicle.x < 30) {
+      vehicle.x = 30;
       vehicle.velocityX = 0;
     }
   }

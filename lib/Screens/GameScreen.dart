@@ -240,30 +240,45 @@ class _GameScreenState extends State<GameScreen> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isSmallScreen = constraints.maxWidth < 700;
-        final buttonSize = isSmallScreen ? 70.0 : 85.0;
+        final buttonSize = isSmallScreen ? 65.0 : 80.0;
         final jumpSize = isSmallScreen ? 60.0 : 70.0;
-        final bottomPadding = isSmallScreen ? 25.0 : 35.0;
-        final sidePadding = isSmallScreen ? 20.0 : 30.0;
+        final bottomPadding = isSmallScreen ? 20.0 : 30.0;
+        final sidePadding = isSmallScreen ? 15.0 : 25.0;
 
         return Stack(
           children: [
-            // Left side - Brake and Gas together
+            // Left side - Jump
             Positioned(
               left: sidePadding,
               bottom: bottomPadding,
+              child: GestureDetector(
+                onTap: () => controller.jump(),
+                child: _buildControlButton(
+                  icon: Icons.arrow_upward,
+                  label: 'JUMP',
+                  color: Colors.blue,
+                  size: jumpSize,
+                ),
+              ),
+            ),
+
+            // Right side - Reverse and Gas together
+            Positioned(
+              right: sidePadding,
+              bottom: bottomPadding,
               child: Row(
                 children: [
-                  // Brake
+                  // Reverse
                   GestureDetector(
-                    onTapDown: (_) => setState(() => controller.isBraking = true),
-                    onTapUp: (_) => setState(() => controller.isBraking = false),
-                    onTapCancel: () => setState(() => controller.isBraking = false),
+                    onTapDown: (_) => setState(() => controller.isReversing = true),
+                    onTapUp: (_) => setState(() => controller.isReversing = false),
+                    onTapCancel: () => setState(() => controller.isReversing = false),
                     child: _buildControlButton(
                       icon: Icons.arrow_back,
-                      label: 'BRAKE',
-                      color: Colors.red,
+                      label: 'REV',
+                      color: Colors.orange,
                       size: buttonSize,
-                      isPressed: controller.isBraking,
+                      isPressed: controller.isReversing,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -281,21 +296,6 @@ class _GameScreenState extends State<GameScreen> {
                     ),
                   ),
                 ],
-              ),
-            ),
-
-            // Right side - Jump
-            Positioned(
-              right: sidePadding,
-              bottom: bottomPadding,
-              child: GestureDetector(
-                onTap: () => controller.jump(),
-                child: _buildControlButton(
-                  icon: Icons.arrow_upward,
-                  label: 'JUMP',
-                  color: Colors.blue,
-                  size: jumpSize,
-                ),
               ),
             ),
           ],
@@ -385,22 +385,22 @@ class _GameScreenState extends State<GameScreen> {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final isSmallScreen = constraints.maxWidth < 700;
-          final titleSize = isSmallScreen ? 32.0 : 42.0;
-          final iconSize = isSmallScreen ? 60.0 : 80.0;
-          final statFontSize = isSmallScreen ? 16.0 : 18.0;
-          final valueFontSize = isSmallScreen ? 20.0 : 24.0;
+          final titleSize = isSmallScreen ? 28.0 : 36.0;
+          final iconSize = isSmallScreen ? 50.0 : 70.0;
+          final statFontSize = isSmallScreen ? 12.0 : 14.0;
+          final valueFontSize = isSmallScreen ? 16.0 : 20.0;
           final containerWidth = isSmallScreen
-              ? constraints.maxWidth * 0.85
-              : constraints.maxWidth * 0.5;
+              ? constraints.maxWidth * 0.75
+              : constraints.maxWidth * 0.45;
 
           return Center(
             child: SingleChildScrollView(
               child: Container(
                 width: containerWidth,
-                padding: EdgeInsets.all(isSmallScreen ? 20 : 32),
+                padding: EdgeInsets.all(isSmallScreen ? 16 : 24),
                 margin: EdgeInsets.symmetric(
-                  horizontal: isSmallScreen ? 20 : 40,
-                  vertical: 20,
+                  horizontal: isSmallScreen ? 15 : 30,
+                  vertical: 15,
                 ),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -411,13 +411,13 @@ class _GameScreenState extends State<GameScreen> {
                       const Color(0xFF0d0d0d),
                     ],
                   ),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.red.withOpacity(0.6), width: 3),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.red.withOpacity(0.6), width: 2),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.red.withOpacity(0.4),
-                      blurRadius: 30,
-                      spreadRadius: 5,
+                      blurRadius: 25,
+                      spreadRadius: 3,
                     ),
                   ],
                 ),
@@ -432,7 +432,7 @@ class _GameScreenState extends State<GameScreen> {
                         return Transform.scale(
                           scale: value,
                           child: Container(
-                            padding: const EdgeInsets.all(16),
+                            padding: EdgeInsets.all(isSmallScreen ? 10 : 14),
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               gradient: RadialGradient(
@@ -452,7 +452,7 @@ class _GameScreenState extends State<GameScreen> {
                       },
                     ),
 
-                    SizedBox(height: isSmallScreen ? 12 : 16),
+                    SizedBox(height: isSmallScreen ? 8 : 12),
 
                     // Title
                     Text(
@@ -461,27 +461,27 @@ class _GameScreenState extends State<GameScreen> {
                         color: Colors.white,
                         fontSize: titleSize,
                         fontWeight: FontWeight.bold,
-                        letterSpacing: 3,
+                        letterSpacing: 2,
                         shadows: [
                           Shadow(
                             color: Colors.red.withOpacity(0.8),
-                            blurRadius: 20,
+                            blurRadius: 15,
                           ),
                         ],
                       ),
                     ),
 
-                    SizedBox(height: isSmallScreen ? 8 : 12),
+                    SizedBox(height: isSmallScreen ? 6 : 10),
 
                     Text(
                       'Better luck next time!',
                       style: TextStyle(
                         color: Colors.grey[400],
-                        fontSize: isSmallScreen ? 14 : 16,
+                        fontSize: isSmallScreen ? 12 : 14,
                       ),
                     ),
 
-                    SizedBox(height: isSmallScreen ? 20 : 24),
+                    SizedBox(height: isSmallScreen ? 16 : 20),
 
                     // Stats
                     _buildGameOverStat(
@@ -491,8 +491,9 @@ class _GameScreenState extends State<GameScreen> {
                       Colors.blue,
                       statFontSize,
                       valueFontSize,
+                      isSmallScreen,
                     ),
-                    SizedBox(height: isSmallScreen ? 10 : 12),
+                    SizedBox(height: isSmallScreen ? 8 : 10),
                     _buildGameOverStat(
                       'Coins',
                       '${controller.coins}',
@@ -500,9 +501,10 @@ class _GameScreenState extends State<GameScreen> {
                       Colors.amber,
                       statFontSize,
                       valueFontSize,
+                      isSmallScreen,
                     ),
 
-                    SizedBox(height: isSmallScreen ? 24 : 32),
+                    SizedBox(height: isSmallScreen ? 20 : 26),
 
                     // Restart Button
                     ElevatedButton(
@@ -515,26 +517,26 @@ class _GameScreenState extends State<GameScreen> {
                         backgroundColor: Colors.green,
                         foregroundColor: Colors.white,
                         padding: EdgeInsets.symmetric(
-                          horizontal: isSmallScreen ? 32 : 48,
-                          vertical: isSmallScreen ? 12 : 16,
+                          horizontal: isSmallScreen ? 24 : 36,
+                          vertical: isSmallScreen ? 10 : 14,
                         ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        elevation: 8,
+                        elevation: 6,
                         shadowColor: Colors.green.withOpacity(0.5),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.refresh, size: isSmallScreen ? 22 : 28),
-                          SizedBox(width: isSmallScreen ? 8 : 12),
+                          Icon(Icons.refresh, size: isSmallScreen ? 18 : 24),
+                          SizedBox(width: isSmallScreen ? 6 : 10),
                           Text(
                             'RESTART',
                             style: TextStyle(
-                              fontSize: isSmallScreen ? 18 : 24,
+                              fontSize: isSmallScreen ? 16 : 20,
                               fontWeight: FontWeight.bold,
-                              letterSpacing: 1.5,
+                              letterSpacing: 1.2,
                             ),
                           ),
                         ],
@@ -557,12 +559,16 @@ class _GameScreenState extends State<GameScreen> {
       Color color,
       double labelSize,
       double valueSize,
+      bool isSmall,
       ) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      padding: EdgeInsets.symmetric(
+        horizontal: isSmall ? 12 : 16,
+        vertical: isSmall ? 8 : 10,
+      ),
       decoration: BoxDecoration(
         color: Colors.black.withOpacity(0.4),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: color.withOpacity(0.3),
           width: 1.5,
@@ -574,14 +580,14 @@ class _GameScreenState extends State<GameScreen> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: EdgeInsets.all(isSmall ? 6 : 8),
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(icon, color: color, size: 20),
+                child: Icon(icon, color: color, size: isSmall ? 16 : 18),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: isSmall ? 8 : 12),
               Text(
                 label,
                 style: TextStyle(
@@ -601,7 +607,7 @@ class _GameScreenState extends State<GameScreen> {
               shadows: [
                 Shadow(
                   color: color.withOpacity(0.5),
-                  blurRadius: 8,
+                  blurRadius: 6,
                 ),
               ],
             ),

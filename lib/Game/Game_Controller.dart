@@ -12,7 +12,7 @@ class GameController {
   final Function onUpdate;
 
   bool isAccelerating = false;
-  bool isBraking = false;
+  bool isReversing = false;
   bool isJumping = false;
   bool isGameOver = false;
   bool gameOverShown = false;
@@ -52,6 +52,11 @@ class GameController {
       fuel -= 0.10;
     }
 
+    // Reversing consumes more fuel
+    if (isReversing && fuel > 0) {
+      fuel -= 0.15;
+    }
+
     // Passive fuel consumption
     fuel -= 0.02;
 
@@ -61,8 +66,8 @@ class GameController {
       return;
     }
 
-    // Update physics with jump
-    physics.update(vehicle, terrain, isAccelerating && fuel > 0, isBraking, isJumping);
+    // Update physics with jump and reverse
+    physics.update(vehicle, terrain, isAccelerating && fuel > 0, isReversing && fuel > 0, isJumping);
 
     // Reset jump after applied
     if (isJumping) {
@@ -71,7 +76,7 @@ class GameController {
       });
     }
 
-    // Update distance
+    // Update distance (only forward movement counts)
     if (vehicle.velocityX > 0) {
       distance += vehicle.velocityX * 0.1;
       if (distance > maxDistanceReached) {
@@ -116,7 +121,7 @@ class GameController {
     }
 
     // Prevent getting stuck
-    if (vehicle.velocityX < 0.1 && frameCount % 180 == 0 && distance > 10) {
+    if (vehicle.velocityX.abs() < 0.1 && frameCount % 180 == 0 && distance > 10) {
       vehicle.velocityX += 1.0;
     }
   }
@@ -138,7 +143,7 @@ class GameController {
     isGameOver = false;
     gameOverShown = false;
     isAccelerating = false;
-    isBraking = false;
+    isReversing = false;
     isJumping = false;
     frameCount = 0;
     physics.canJump = true;
