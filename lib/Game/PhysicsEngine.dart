@@ -11,7 +11,7 @@ class PhysicsEngine {
   static const double rotationDamping = 0.92;
   static const double maxSpeed = 10.0;
   static const double jumpForce = -12.0;
-  static const double groundThreshold = 10.0;
+  static const double groundThreshold = 5.0;  // Reduced from 10.0 for better ground detection
 
   bool canJump = true;
 
@@ -23,11 +23,11 @@ class PhysicsEngine {
     double groundY = terrain.getHeightAt(vehicle.x);
     double distanceToGround = vehicle.y - groundY;
 
-    // Check if on ground
-    bool onGround = distanceToGround >= -groundThreshold && vehicle.velocityY >= 0;
+    // Check if on ground - vehicle.y should be close to groundY
+    bool onGround = distanceToGround.abs() < groundThreshold && vehicle.velocityY >= -1;
 
     if (onGround) {
-      // Smoothly place vehicle on ground
+      // Place vehicle on ground
       vehicle.y = groundY;
       vehicle.velocityY = 0;
       canJump = true;
@@ -59,7 +59,6 @@ class PhysicsEngine {
         if (vehicle.velocityX > 0.5) {
           vehicle.velocityX -= brakeForce;
         } else {
-          // Almost stopped, just set to zero
           vehicle.velocityX = max(0, vehicle.velocityX - 0.1);
         }
       }
@@ -100,6 +99,12 @@ class PhysicsEngine {
     // Update position
     vehicle.x += vehicle.velocityX;
     vehicle.y += vehicle.velocityY;
+
+    // Prevent vehicle from going below terrain
+    if (vehicle.y > groundY) {
+      vehicle.y = groundY;
+      vehicle.velocityY = 0;
+    }
 
     // Prevent vehicle from going backwards past starting point
     if (vehicle.x < 50) {

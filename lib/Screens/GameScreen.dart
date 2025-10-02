@@ -58,10 +58,10 @@ class _GameScreenState extends State<GameScreen> {
           if (controller.isGameOver) _buildGameOverOverlay(),
 
           // HUD - Top Stats
-          _buildHUD(),
+          if (!controller.isGameOver) _buildHUD(),
 
           // Controls
-          _buildControls(),
+          if (!controller.isGameOver) _buildControls(),
         ],
       ),
     );
@@ -69,47 +69,60 @@ class _GameScreenState extends State<GameScreen> {
 
   Widget _buildHUD() {
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            // Left side stats
-            Column(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isSmallScreen = constraints.maxWidth < 700;
+          final statPadding = isSmallScreen ? 8.0 : 16.0;
+
+          return Padding(
+            padding: EdgeInsets.all(statPadding),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildStatCard(
-                  icon: Icons.straighten,
-                  label: 'Distance',
-                  value: '${controller.distance.toInt()}m',
-                  color: Colors.blue,
+                // Left side stats
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildStatCard(
+                      icon: Icons.straighten,
+                      label: 'Distance',
+                      value: '${controller.distance.toInt()}m',
+                      color: Colors.blue,
+                      isSmall: isSmallScreen,
+                    ),
+                    SizedBox(height: isSmallScreen ? 6 : 8),
+                    _buildStatCard(
+                      icon: Icons.monetization_on,
+                      label: 'Coins',
+                      value: '${controller.coins}',
+                      color: Colors.amber,
+                      isSmall: isSmallScreen,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                _buildStatCard(
-                  icon: Icons.monetization_on,
-                  label: 'Coins',
-                  value: '${controller.coins}',
-                  color: Colors.amber,
-                ),
-              ],
-            ),
 
-            // Right side stats
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                _buildFuelBar(),
-                const SizedBox(height: 8),
-                _buildStatCard(
-                  icon: Icons.speed,
-                  label: 'Speed',
-                  value: '${(controller.vehicle.velocityX * 10).toInt()} km/h',
-                  color: Colors.green,
+                // Right side stats
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildFuelBar(isSmall: isSmallScreen),
+                    SizedBox(height: isSmallScreen ? 6 : 8),
+                    _buildStatCard(
+                      icon: Icons.speed,
+                      label: 'Speed',
+                      value: '${(controller.vehicle.velocityX * 10).toInt()}',
+                      color: Colors.green,
+                      isSmall: isSmallScreen,
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -119,12 +132,16 @@ class _GameScreenState extends State<GameScreen> {
     required String label,
     required String value,
     required Color color,
+    bool isSmall = false,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: EdgeInsets.symmetric(
+        horizontal: isSmall ? 8 : 12,
+        vertical: isSmall ? 6 : 8,
+      ),
       decoration: BoxDecoration(
         color: Colors.black.withOpacity(0.6),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(isSmall ? 8 : 12),
         border: Border.all(color: color.withOpacity(0.5), width: 2),
         boxShadow: [
           BoxShadow(
@@ -137,8 +154,8 @@ class _GameScreenState extends State<GameScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(width: 8),
+          Icon(icon, color: color, size: isSmall ? 16 : 20),
+          SizedBox(width: isSmall ? 6 : 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -147,15 +164,15 @@ class _GameScreenState extends State<GameScreen> {
                 label,
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.7),
-                  fontSize: 10,
+                  fontSize: isSmall ? 8 : 10,
                   fontWeight: FontWeight.w500,
                 ),
               ),
               Text(
                 value,
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
-                  fontSize: 16,
+                  fontSize: isSmall ? 13 : 16,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -166,13 +183,13 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  Widget _buildFuelBar() {
+  Widget _buildFuelBar({bool isSmall = false}) {
     return Container(
-      width: 150,
-      padding: const EdgeInsets.all(8),
+      width: isSmall ? 120 : 150,
+      padding: EdgeInsets.all(isSmall ? 6 : 8),
       decoration: BoxDecoration(
         color: Colors.black.withOpacity(0.6),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(isSmall ? 8 : 12),
         border: Border.all(
           color: controller.fuel > 30
               ? Colors.green.withOpacity(0.5)
@@ -189,25 +206,25 @@ class _GameScreenState extends State<GameScreen> {
               Icon(
                 Icons.local_gas_station,
                 color: controller.fuel > 30 ? Colors.green : Colors.red,
-                size: 18,
+                size: isSmall ? 14 : 18,
               ),
-              const SizedBox(width: 6),
+              SizedBox(width: isSmall ? 4 : 6),
               Text(
                 'FUEL: ${controller.fuel.toInt()}%',
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
-                  fontSize: 12,
+                  fontSize: isSmall ? 10 : 12,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: isSmall ? 4 : 6),
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
               value: controller.fuel / 100,
-              minHeight: 8,
+              minHeight: isSmall ? 6 : 8,
               backgroundColor: Colors.grey.shade800,
               valueColor: AlwaysStoppedAnimation<Color>(
                 controller.fuel > 30 ? Colors.green : Colors.red,
@@ -220,57 +237,70 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Widget _buildControls() {
-    return Stack(
-      children: [
-        // Left side - Brake Button
-        Positioned(
-          left: 30,
-          bottom: 40,
-          child: GestureDetector(
-            onTapDown: (_) => setState(() => controller.isBraking = true),
-            onTapUp: (_) => setState(() => controller.isBraking = false),
-            onTapCancel: () => setState(() => controller.isBraking = false),
-            child: _buildControlButton(
-              icon: Icons.arrow_back,
-              label: 'BRAKE',
-              color: Colors.red,
-              isPressed: controller.isBraking,
-            ),
-          ),
-        ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isSmallScreen = constraints.maxWidth < 700;
+        final buttonSize = isSmallScreen ? 70.0 : 85.0;
+        final jumpSize = isSmallScreen ? 60.0 : 70.0;
+        final bottomPadding = isSmallScreen ? 25.0 : 35.0;
+        final sidePadding = isSmallScreen ? 20.0 : 30.0;
 
-        // Right side - Gas Button
-        Positioned(
-          right: 30,
-          bottom: 40,
-          child: GestureDetector(
-            onTapDown: (_) => setState(() => controller.isAccelerating = true),
-            onTapUp: (_) => setState(() => controller.isAccelerating = false),
-            onTapCancel: () => setState(() => controller.isAccelerating = false),
-            child: _buildControlButton(
-              icon: Icons.arrow_forward,
-              label: 'GAS',
-              color: Colors.green,
-              isPressed: controller.isAccelerating,
+        return Stack(
+          children: [
+            // Left side - Brake and Gas together
+            Positioned(
+              left: sidePadding,
+              bottom: bottomPadding,
+              child: Row(
+                children: [
+                  // Brake
+                  GestureDetector(
+                    onTapDown: (_) => setState(() => controller.isBraking = true),
+                    onTapUp: (_) => setState(() => controller.isBraking = false),
+                    onTapCancel: () => setState(() => controller.isBraking = false),
+                    child: _buildControlButton(
+                      icon: Icons.arrow_back,
+                      label: 'BRAKE',
+                      color: Colors.red,
+                      size: buttonSize,
+                      isPressed: controller.isBraking,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // Gas
+                  GestureDetector(
+                    onTapDown: (_) => setState(() => controller.isAccelerating = true),
+                    onTapUp: (_) => setState(() => controller.isAccelerating = false),
+                    onTapCancel: () => setState(() => controller.isAccelerating = false),
+                    child: _buildControlButton(
+                      icon: Icons.arrow_forward,
+                      label: 'GAS',
+                      color: Colors.green,
+                      size: buttonSize,
+                      isPressed: controller.isAccelerating,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ),
 
-        // Right side - Jump Button (above gas)
-        Positioned(
-          right: 30,
-          bottom: 150,
-          child: GestureDetector(
-            onTap: () => controller.jump(),
-            child: _buildControlButton(
-              icon: Icons.arrow_upward,
-              label: 'JUMP',
-              color: Colors.blue,
-              size: 70,
+            // Right side - Jump
+            Positioned(
+              right: sidePadding,
+              bottom: bottomPadding,
+              child: GestureDetector(
+                onTap: () => controller.jump(),
+                child: _buildControlButton(
+                  icon: Icons.arrow_upward,
+                  label: 'JUMP',
+                  color: Colors.blue,
+                  size: jumpSize,
+                ),
+              ),
             ),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 
@@ -278,7 +308,7 @@ class _GameScreenState extends State<GameScreen> {
     required IconData icon,
     required String label,
     required Color color,
-    double size = 90,
+    required double size,
     bool isPressed = false,
   }) {
     return AnimatedScale(
@@ -296,24 +326,26 @@ class _GameScreenState extends State<GameScreen> {
               color.withOpacity(0.8),
             ]
                 : [
-              color.withOpacity(0.8),
-              color.withOpacity(0.6),
+              color.withOpacity(0.9),
+              color.withOpacity(0.7),
+              color.withOpacity(0.5),
             ],
+            stops: const [0.0, 0.7, 1.0],
           ),
           boxShadow: [
             BoxShadow(
-              color: color.withOpacity(isPressed ? 0.7 : 0.5),
-              blurRadius: isPressed ? 20 : 15,
+              color: color.withOpacity(isPressed ? 0.7 : 0.6),
+              blurRadius: isPressed ? 20 : 18,
               spreadRadius: isPressed ? 3 : 2,
             ),
             BoxShadow(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withOpacity(0.4),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
           ],
           border: Border.all(
-            color: Colors.white.withOpacity(0.3),
+            color: Colors.white.withOpacity(0.4),
             width: 3,
           ),
         ),
@@ -323,19 +355,20 @@ class _GameScreenState extends State<GameScreen> {
             Icon(
               icon,
               color: Colors.white,
-              size: size * 0.4,
+              size: size * 0.45,
             ),
             SizedBox(height: size * 0.05),
             Text(
               label,
               style: TextStyle(
                 color: Colors.white,
-                fontSize: size * 0.13,
+                fontSize: size * 0.14,
                 fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
                 shadows: [
                   Shadow(
-                    color: Colors.black.withOpacity(0.5),
-                    blurRadius: 4,
+                    color: Colors.black.withOpacity(0.7),
+                    blurRadius: 5,
                   ),
                 ],
               ),
@@ -348,110 +381,229 @@ class _GameScreenState extends State<GameScreen> {
 
   Widget _buildGameOverOverlay() {
     return Container(
-      color: Colors.black.withOpacity(0.8),
-      child: Center(
-        child: Container(
-          padding: const EdgeInsets.all(32),
-          margin: const EdgeInsets.symmetric(horizontal: 40),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1a1a1a),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.red.withOpacity(0.5), width: 3),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.red.withOpacity(0.3),
-                blurRadius: 30,
-                spreadRadius: 5,
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.sports_score,
-                color: Colors.red,
-                size: 80,
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'GAME OVER',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 42,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 2,
+      color: Colors.black.withOpacity(0.9),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isSmallScreen = constraints.maxWidth < 700;
+          final titleSize = isSmallScreen ? 32.0 : 42.0;
+          final iconSize = isSmallScreen ? 60.0 : 80.0;
+          final statFontSize = isSmallScreen ? 16.0 : 18.0;
+          final valueFontSize = isSmallScreen ? 20.0 : 24.0;
+          final containerWidth = isSmallScreen
+              ? constraints.maxWidth * 0.85
+              : constraints.maxWidth * 0.5;
+
+          return Center(
+            child: SingleChildScrollView(
+              child: Container(
+                width: containerWidth,
+                padding: EdgeInsets.all(isSmallScreen ? 20 : 32),
+                margin: EdgeInsets.symmetric(
+                  horizontal: isSmallScreen ? 20 : 40,
+                  vertical: 20,
                 ),
-              ),
-              const SizedBox(height: 24),
-              _buildGameOverStat('Distance', '${controller.distance.toInt()}m', Icons.straighten),
-              const SizedBox(height: 12),
-              _buildGameOverStat('Coins', '${controller.coins}', Icons.monetization_on),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    controller.restart();
-                  });
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      const Color(0xFF1a1a1a),
+                      const Color(0xFF0d0d0d),
+                    ],
                   ),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.red.withOpacity(0.6), width: 3),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.red.withOpacity(0.4),
+                      blurRadius: 30,
+                      spreadRadius: 5,
+                    ),
+                  ],
                 ),
-                child: const Row(
+                child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.refresh, size: 28),
-                    SizedBox(width: 12),
+                    // Animated Icon
+                    TweenAnimationBuilder(
+                      duration: const Duration(milliseconds: 600),
+                      tween: Tween<double>(begin: 0, end: 1),
+                      builder: (context, double value, child) {
+                        return Transform.scale(
+                          scale: value,
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: RadialGradient(
+                                colors: [
+                                  Colors.red.withOpacity(0.3),
+                                  Colors.transparent,
+                                ],
+                              ),
+                            ),
+                            child: Icon(
+                              Icons.warning_rounded,
+                              color: Colors.red,
+                              size: iconSize,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+
+                    SizedBox(height: isSmallScreen ? 12 : 16),
+
+                    // Title
                     Text(
-                      'RESTART',
+                      'GAME OVER',
                       style: TextStyle(
-                        fontSize: 24,
+                        color: Colors.white,
+                        fontSize: titleSize,
                         fontWeight: FontWeight.bold,
+                        letterSpacing: 3,
+                        shadows: [
+                          Shadow(
+                            color: Colors.red.withOpacity(0.8),
+                            blurRadius: 20,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    SizedBox(height: isSmallScreen ? 8 : 12),
+
+                    Text(
+                      'Better luck next time!',
+                      style: TextStyle(
+                        color: Colors.grey[400],
+                        fontSize: isSmallScreen ? 14 : 16,
+                      ),
+                    ),
+
+                    SizedBox(height: isSmallScreen ? 20 : 24),
+
+                    // Stats
+                    _buildGameOverStat(
+                      'Distance',
+                      '${controller.distance.toInt()}m',
+                      Icons.straighten,
+                      Colors.blue,
+                      statFontSize,
+                      valueFontSize,
+                    ),
+                    SizedBox(height: isSmallScreen ? 10 : 12),
+                    _buildGameOverStat(
+                      'Coins',
+                      '${controller.coins}',
+                      Icons.monetization_on,
+                      Colors.amber,
+                      statFontSize,
+                      valueFontSize,
+                    ),
+
+                    SizedBox(height: isSmallScreen ? 24 : 32),
+
+                    // Restart Button
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          controller.restart();
+                        });
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isSmallScreen ? 32 : 48,
+                          vertical: isSmallScreen ? 12 : 16,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 8,
+                        shadowColor: Colors.green.withOpacity(0.5),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.refresh, size: isSmallScreen ? 22 : 28),
+                          SizedBox(width: isSmallScreen ? 8 : 12),
+                          Text(
+                            'RESTART',
+                            style: TextStyle(
+                              fontSize: isSmallScreen ? 18 : 24,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.5,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildGameOverStat(String label, String value, IconData icon) {
+  Widget _buildGameOverStat(
+      String label,
+      String value,
+      IconData icon,
+      Color color,
+      double labelSize,
+      double valueSize,
+      ) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.3),
+        color: Colors.black.withOpacity(0.4),
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: color.withOpacity(0.3),
+          width: 1.5,
+        ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             children: [
-              Icon(icon, color: Colors.white70, size: 24),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: color, size: 20),
+              ),
               const SizedBox(width: 12),
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white70,
-                  fontSize: 18,
+                  fontSize: labelSize,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
           ),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               color: Colors.white,
-              fontSize: 24,
+              fontSize: valueSize,
               fontWeight: FontWeight.bold,
+              shadows: [
+                Shadow(
+                  color: color.withOpacity(0.5),
+                  blurRadius: 8,
+                ),
+              ],
             ),
           ),
         ],

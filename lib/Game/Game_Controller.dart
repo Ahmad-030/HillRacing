@@ -24,7 +24,17 @@ class GameController {
   int frameCount = 0;
   double maxDistanceReached = 0;
 
-  GameController({required this.onUpdate});
+  GameController({required this.onUpdate}) {
+    // Initialize vehicle position based on terrain
+    _initializeVehiclePosition();
+  }
+
+  void _initializeVehiclePosition() {
+    // Get the terrain height at the starting position and place vehicle there
+    double groundHeight = terrain.getHeightAt(vehicle.x);
+    vehicle.y = groundHeight;
+    vehicle.velocityY = 0;
+  }
 
   void start() {
     _gameTimer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
@@ -118,6 +128,10 @@ class GameController {
   void restart() {
     vehicle.reset();
     terrain.generate();
+
+    // Re-initialize vehicle position on new terrain
+    _initializeVehiclePosition();
+
     fuel = 100;
     distance = 0;
     coins = 0;

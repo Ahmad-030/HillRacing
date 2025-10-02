@@ -25,7 +25,7 @@ class Terrain {
 
   void generateSegment(int segmentIndex) {
     double startX = segmentIndex == 0 ? 0 : points.last.dx;
-    double startY = segmentIndex == 0 ? 200 : points.last.dy;  // Changed from 400 to 300
+    double startY = segmentIndex == 0 ? 200 : points.last.dy;  // Changed to 300
 
     String terrainType = terrainTypes[segmentIndex % terrainTypes.length];
 
@@ -65,8 +65,8 @@ class Terrain {
 
       startY += heightChange * 0.25;
 
-      // Keep terrain on screen - adjusted to be higher up (lower y values)
-      startY = startY.clamp(150.0, 400.0);  // Changed from 250.0-500.0
+      // Keep terrain on screen - adjusted range
+      startY = startY.clamp(200.0, 450.0);
     }
   }
 

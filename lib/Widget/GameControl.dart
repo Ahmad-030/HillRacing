@@ -18,55 +18,69 @@ class GameControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        // Left side - Brake (Back/Reverse)
-        Positioned(
-          left: 30,
-          bottom: 40,
-          child: GestureDetector(
-            onTapDown: (_) => onBrake(),
-            onTapUp: (_) => onBrakeRelease(),
-            onTapCancel: onBrakeRelease,
-            child: _buildControlButton(
-              icon: Icons.arrow_back,
-              label: 'BRAKE',
-              color: Colors.red,
-            ),
-          ),
-        ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Responsive sizing based on screen width
+        final screenWidth = constraints.maxWidth;
+        final buttonSize = screenWidth < 400 ? 70.0 : 85.0;
+        final jumpSize = screenWidth < 400 ? 65.0 : 75.0;
+        final bottomPadding = screenWidth < 400 ? 30.0 : 40.0;
+        final sidePadding = screenWidth < 400 ? 20.0 : 30.0;
 
-        // Right side - Accelerate (Forward)
-        Positioned(
-          right: 30,
-          bottom: 40,
-          child: GestureDetector(
-            onTapDown: (_) => onAccelerate(),
-            onTapUp: (_) => onAccelerateRelease(),
-            onTapCancel: onAccelerateRelease,
-            child: _buildControlButton(
-              icon: Icons.arrow_forward,
-              label: 'GAS',
-              color: Colors.green,
+        return Stack(
+          children: [
+            // Left side controls (Brake and Gas together)
+            Positioned(
+              left: sidePadding,
+              bottom: bottomPadding,
+              child: Row(
+                children: [
+                  // Brake button
+                  GestureDetector(
+                    onTapDown: (_) => onBrake(),
+                    onTapUp: (_) => onBrakeRelease(),
+                    onTapCancel: onBrakeRelease,
+                    child: _buildControlButton(
+                      icon: Icons.arrow_back,
+                      label: 'BRAKE',
+                      color: Colors.red,
+                      size: buttonSize,
+                    ),
+                  ),
+                  const SizedBox(width: 15),
+                  // Gas button
+                  GestureDetector(
+                    onTapDown: (_) => onAccelerate(),
+                    onTapUp: (_) => onAccelerateRelease(),
+                    onTapCancel: onAccelerateRelease,
+                    child: _buildControlButton(
+                      icon: Icons.arrow_forward,
+                      label: 'GAS',
+                      color: Colors.green,
+                      size: buttonSize,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ),
 
-        // Right side - Jump (Above accelerate)
-        Positioned(
-          right: 30,
-          bottom: 150,
-          child: GestureDetector(
-            onTap: onJump,
-            child: _buildControlButton(
-              icon: Icons.arrow_upward,
-              label: 'JUMP',
-              color: Colors.blue,
-              size: 70,
+            // Right side - Jump button
+            Positioned(
+              right: sidePadding,
+              bottom: bottomPadding,
+              child: GestureDetector(
+                onTap: onJump,
+                child: _buildControlButton(
+                  icon: Icons.arrow_upward,
+                  label: 'JUMP',
+                  color: Colors.blue,
+                  size: jumpSize,
+                ),
+              ),
             ),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 
@@ -74,7 +88,7 @@ class GameControls extends StatelessWidget {
     required IconData icon,
     required String label,
     required Color color,
-    double size = 90,
+    required double size,
   }) {
     return Container(
       width: size,
@@ -83,24 +97,26 @@ class GameControls extends StatelessWidget {
         shape: BoxShape.circle,
         gradient: RadialGradient(
           colors: [
-            color.withOpacity(0.8),
-            color.withOpacity(0.6),
+            color.withOpacity(0.9),
+            color.withOpacity(0.7),
+            color.withOpacity(0.5),
           ],
+          stops: const [0.0, 0.7, 1.0],
         ),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.5),
-            blurRadius: 15,
-            spreadRadius: 2,
+            color: color.withOpacity(0.6),
+            blurRadius: 20,
+            spreadRadius: 3,
           ),
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.4),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
           ),
         ],
         border: Border.all(
-          color: Colors.white.withOpacity(0.3),
+          color: Colors.white.withOpacity(0.4),
           width: 3,
         ),
       ),
@@ -110,19 +126,26 @@ class GameControls extends StatelessWidget {
           Icon(
             icon,
             color: Colors.white,
-            size: size * 0.4,
+            size: size * 0.45,
+            shadows: [
+              Shadow(
+                color: Colors.black.withOpacity(0.5),
+                blurRadius: 4,
+              ),
+            ],
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: size * 0.05),
           Text(
             label,
             style: TextStyle(
               color: Colors.white,
-              fontSize: size * 0.12,
+              fontSize: size * 0.14,
               fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
               shadows: [
                 Shadow(
-                  color: Colors.black.withOpacity(0.5),
-                  blurRadius: 4,
+                  color: Colors.black.withOpacity(0.7),
+                  blurRadius: 6,
                 ),
               ],
             ),
@@ -132,24 +155,3 @@ class GameControls extends StatelessWidget {
     );
   }
 }
-
-// How to use in your game screen:
-/*
-GameControls(
-  onAccelerate: () {
-    setState(() => controller.isAccelerating = true);
-  },
-  onAccelerateRelease: () {
-    setState(() => controller.isAccelerating = false);
-  },
-  onBrake: () {
-    setState(() => controller.isBraking = true);
-  },
-  onBrakeRelease: () {
-    setState(() => controller.isBraking = false);
-  },
-  onJump: () {
-    controller.jump();
-  },
-)
-*/

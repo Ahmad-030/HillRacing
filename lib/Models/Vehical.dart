@@ -11,14 +11,13 @@ class Vehicle {
   final double width = 60;
   final double height = 40;
   final double wheelRadius = 15;
-  final double wheelBase = 40; // Distance between wheels
+  final double wheelBase = 40;
 
-  // For smoother animation
   double targetRotation = 0;
 
   Vehicle({
     this.x = 100,
-    this.y = 200,
+    this.y = 300,  // Changed from 200 to 300 to match terrain
     this.velocityX = 0,
     this.velocityY = 0,
     this.rotation = 0,
@@ -27,7 +26,7 @@ class Vehicle {
 
   void reset() {
     x = 100;
-    y = 200;
+    y = 300;  // Changed from 200 to 300
     velocityX = 0;
     velocityY = 0;
     rotation = 0;
@@ -35,7 +34,6 @@ class Vehicle {
     targetRotation = 0;
   }
 
-  // Helper methods for wheel positions
   double getFrontWheelX() => x + cos(rotation) * 20;
   double getFrontWheelY() => y + sin(rotation) * 20;
 
