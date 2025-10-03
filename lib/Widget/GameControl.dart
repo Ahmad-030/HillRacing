@@ -1,11 +1,13 @@
 import 'dart:async';
+import 'package:hillclimb/Models/Obstacle.dart';
+
 import '../Game/PhysicsEngine.dart';
 import '../Models/Terian.dart';
 import '../Models/Vehical.dart';
 
 class GameController {
   final Vehicle vehicle = Vehicle();
-  final Terrain terrain = Terrain();
+  final TerrainModels terrain = TerrainModels();
   final PhysicsEngine physics = PhysicsEngine();
 
   Timer? _gameTimer;

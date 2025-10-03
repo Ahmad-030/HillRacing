@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 import 'dart:ui' as ui;
 import '../Game/Game_Controller.dart';
+import '../Models/Obstacle.dart';
 
 class GameCanvas extends StatelessWidget {
   final GameController controller;
@@ -55,7 +56,7 @@ class GamePainter extends CustomPainter {
 
     _drawMountains(canvas, size, cameraX, isNight, isSnow);
     _drawTerrain(canvas, size, terrain, cameraX, isNight, isSnow);
-
+    _drawObstacles(canvas, terrain, cameraX, size.width, isNight, isSnow);
     // Only draw visible collectibles
     _drawVisibleFuelCans(canvas, terrain, cameraX, size.width);
     _drawVisibleCoins(canvas, terrain, cameraX, size.width);
@@ -650,7 +651,228 @@ class GamePainter extends CustomPainter {
       canvas.drawCircle(Offset(particleX, particleY), size, particlePaint);
     }
   }
+// Add this method to the GamePainter class in GameCanvas.dart
 
+  void _drawObstacles(Canvas canvas, terrain, double cameraX, double screenWidth, bool isNight, bool isSnow) {
+    for (var obstacle in terrain.obstacles) {
+      final screenX = obstacle.position.dx - cameraX;
+      if (screenX < -100 || screenX > screenWidth + 100) continue;
+
+      final screenPos = Offset(screenX, obstacle.position.dy);
+
+      switch (obstacle.type) {
+        case ObstacleType.rock:
+          _drawRock(canvas, screenPos, obstacle.width, obstacle.height, isNight);
+          break;
+        case ObstacleType.tree:
+          _drawTree(canvas, screenPos, obstacle.width, obstacle.height, isSnow);
+          break;
+        case ObstacleType.spike:
+          _drawSpike(canvas, screenPos, obstacle.width, obstacle.height);
+          break;
+        case ObstacleType.barrel:
+          _drawBarrel(canvas, screenPos, obstacle.width, obstacle.height);
+          break;
+      }
+    }
+  }
+
+  void _drawRock(Canvas canvas, Offset position, double width, double height, bool isNight) {
+    // Shadow
+    canvas.drawOval(
+        Rect.fromCenter(center: Offset(position.dx, position.dy + height + 5), width: width * 0.9, height: 8),
+        Paint()..color = Colors.black.withOpacity(0.3)
+    );
+
+    // Rock body
+    final rockPath = Path();
+    rockPath.moveTo(position.dx - width / 2, position.dy + height);
+    rockPath.lineTo(position.dx - width / 3, position.dy + height * 0.3);
+    rockPath.lineTo(position.dx, position.dy);
+    rockPath.lineTo(position.dx + width / 3, position.dy + height * 0.4);
+    rockPath.lineTo(position.dx + width / 2, position.dy + height);
+    rockPath.close();
+
+    final rockGradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: isNight
+          ? [const Color(0xFF4a4a4a), const Color(0xFF2a2a2a), const Color(0xFF1a1a1a)]
+          : [const Color(0xFF78716c), const Color(0xFF57534e), const Color(0xFF44403c)],
+    );
+
+    canvas.drawPath(
+        rockPath,
+        Paint()..shader = rockGradient.createShader(Rect.fromCenter(center: position, width: width, height: height))
+    );
+
+    // Rock cracks/details
+    final crackPaint = Paint()
+      ..color = Colors.black.withOpacity(0.3)
+      ..strokeWidth = 2
+      ..style = PaintingStyle.stroke;
+
+    canvas.drawLine(
+        Offset(position.dx - width / 4, position.dy + height * 0.5),
+        Offset(position.dx + width / 6, position.dy + height * 0.7),
+        crackPaint
+    );
+  }
+
+  void _drawTree(Canvas canvas, Offset position, double width, double height, bool isSnow) {
+    // Shadow
+    canvas.drawOval(
+        Rect.fromCenter(center: Offset(position.dx, position.dy + height + 5), width: width * 1.2, height: 10),
+        Paint()..color = Colors.black.withOpacity(0.3)
+    );
+
+    // Trunk
+    final trunkRect = RRect.fromRectAndRadius(
+        Rect.fromCenter(center: Offset(position.dx, position.dy + height * 0.7), width: width * 0.3, height: height * 0.6),
+        const Radius.circular(3)
+    );
+
+    canvas.drawRRect(trunkRect, Paint()..color = const Color(0xFF78350f));
+    canvas.drawRRect(
+        trunkRect,
+        Paint()..color = const Color(0xFF451a03)..style = PaintingStyle.stroke..strokeWidth = 2
+    );
+
+    // Foliage (3 circles forming tree crown)
+    final foliageColor = isSnow ? const Color(0xFF86efac) : const Color(0xFF16a34a);
+    final foliageDark = isSnow ? const Color(0xFF4ade80) : const Color(0xFF15803d);
+
+    for (int i = 0; i < 3; i++) {
+      final yOffset = i * (height * 0.15);
+      final size = (width * 0.8) - (i * 5);
+
+      canvas.drawCircle(
+          Offset(position.dx, position.dy + height * 0.3 + yOffset),
+          size / 2,
+          Paint()..color = foliageColor
+      );
+
+      canvas.drawCircle(
+          Offset(position.dx - size * 0.2, position.dy + height * 0.3 + yOffset - size * 0.1),
+          size * 0.2,
+          Paint()..color = foliageDark
+      );
+    }
+
+    // Snow on top if snow theme
+    if (isSnow) {
+      for (int i = 0; i < 3; i++) {
+        final yOffset = i * (height * 0.15);
+        final size = (width * 0.8) - (i * 5);
+
+        canvas.drawCircle(
+            Offset(position.dx, position.dy + height * 0.25 + yOffset),
+            size * 0.3,
+            Paint()..color = Colors.white
+        );
+      }
+    }
+  }
+
+  void _drawSpike(Canvas canvas, Offset position, double width, double height) {
+    // Shadow
+    canvas.drawOval(
+        Rect.fromCenter(center: Offset(position.dx, position.dy + height + 5), width: width, height: 8),
+        Paint()..color = Colors.black.withOpacity(0.4)
+    );
+
+    // Spike triangles
+    final spikePaint = Paint();
+    final spikeGradient = LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [const Color(0xFF6b7280), const Color(0xFF4b5563), const Color(0xFF374151)],
+    );
+
+    for (int i = 0; i < 3; i++) {
+      final xOffset = (i - 1) * (width / 3);
+      final spikePath = Path();
+      spikePath.moveTo(position.dx + xOffset - width / 6, position.dy + height);
+      spikePath.lineTo(position.dx + xOffset, position.dy);
+      spikePath.lineTo(position.dx + xOffset + width / 6, position.dy + height);
+      spikePath.close();
+
+      spikePaint.shader = spikeGradient.createShader(Rect.fromLTWH(
+          position.dx + xOffset - width / 6, position.dy, width / 3, height
+      ));
+      canvas.drawPath(spikePath, spikePaint);
+
+      // Highlight
+      canvas.drawLine(
+          Offset(position.dx + xOffset - 2, position.dy + height * 0.3),
+          Offset(position.dx + xOffset, position.dy + 2),
+          Paint()..color = Colors.white.withOpacity(0.4)..strokeWidth = 2
+      );
+    }
+
+    // Base
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(
+            Rect.fromCenter(center: Offset(position.dx, position.dy + height + 3), width: width, height: 6),
+            const Radius.circular(2)
+        ),
+        Paint()..color = const Color(0xFF1f2937)
+    );
+  }
+
+  void _drawBarrel(Canvas canvas, Offset position, double width, double height) {
+    // Shadow
+    canvas.drawOval(
+        Rect.fromCenter(center: Offset(position.dx, position.dy + height + 5), width: width, height: 8),
+        Paint()..color = Colors.black.withOpacity(0.3)
+    );
+
+    // Barrel body
+    final barrelRect = RRect.fromRectAndRadius(
+        Rect.fromCenter(center: Offset(position.dx, position.dy + height / 2), width: width, height: height),
+        Radius.circular(width * 0.1)
+    );
+
+    final barrelGradient = LinearGradient(
+      begin: Alignment.centerLeft,
+      end: Alignment.centerRight,
+      colors: [const Color(0xFFfbbf24), const Color(0xFFf59e0b), const Color(0xFFd97706)],
+    );
+
+    canvas.drawRRect(
+        barrelRect,
+        Paint()..shader = barrelGradient.createShader(barrelRect.outerRect)
+    );
+
+    // Barrel bands
+    final bandPaint = Paint()..color = const Color(0xFF92400e)..strokeWidth = 3;
+
+    canvas.drawLine(
+        Offset(position.dx - width / 2, position.dy + height * 0.25),
+        Offset(position.dx + width / 2, position.dy + height * 0.25),
+        bandPaint
+    );
+
+    canvas.drawLine(
+        Offset(position.dx - width / 2, position.dy + height * 0.75),
+        Offset(position.dx + width / 2, position.dy + height * 0.75),
+        bandPaint
+    );
+
+    // Warning symbol
+    final warningPath = Path();
+    warningPath.moveTo(position.dx, position.dy + height * 0.4);
+    warningPath.lineTo(position.dx - width * 0.2, position.dy + height * 0.65);
+    warningPath.lineTo(position.dx + width * 0.2, position.dy + height * 0.65);
+    warningPath.close();
+
+    canvas.drawPath(warningPath, Paint()..color = Colors.black);
+    canvas.drawCircle(
+        Offset(position.dx, position.dy + height * 0.57),
+        2,
+        Paint()..color = const Color(0xFFfbbf24)
+    );
+  }
   void _drawSpeedLines(Canvas canvas, Size size, vehicle, double cameraX) {
     final random = Random(42);
     final linePaint = Paint()

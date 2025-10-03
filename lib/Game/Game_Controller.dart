@@ -1,11 +1,12 @@
 import 'dart:async';
+import '../Models/Obstacle.dart';
 import '../Models/Terian.dart';
 import '../Models/Vehical.dart';
 import 'PhysicsEngine.dart';
 
 class GameController {
   final Vehicle vehicle = Vehicle();
-  final Terrain terrain = Terrain();
+  final TerrainModels terrain = TerrainModels();
   final PhysicsEngine physics = PhysicsEngine();
 
   Timer? _gameTimer;
@@ -27,7 +28,7 @@ class GameController {
 
   // Terrain change timer (15 seconds = 900 frames at 60fps)
   int terrainChangeCounter = 0;
-  final int terrainChangeInterval = 900; // 15 seconds
+  final int terrainChangeInterval = 900;
 
   GameController({required this.onUpdate}) {
     _initializeVehiclePosition();
@@ -62,17 +63,17 @@ class GameController {
       terrain.forceNextSegment();
     }
 
-    // REDUCED FUEL CONSUMPTION - Only when actively using controls
+    // HEAVILY REDUCED FUEL CONSUMPTION
     if (isAccelerating && fuel > 0) {
-      fuel -= 0.05; // Reduced from 0.10
+      fuel -= 0.05; // Reduced from 0.05
     }
 
     if (isReversing && fuel > 0) {
-      fuel -= 0.08; // Reduced from 0.15
+      fuel -= 0.05; // Reduced from 0.08
     }
 
     // Minimal passive fuel consumption
-    fuel -= 0.01; // Reduced from 0.02
+    fuel -= 0.005; // Reduced from 0.01
 
     if (fuel <= 0) {
       fuel = 0;
@@ -81,7 +82,7 @@ class GameController {
     }
 
     // Update physics
-    physics.update(vehicle, terrain, isAccelerating && fuel > 0, isReversing && fuel > 0, isJumping);
+    physics.update(vehicle, terrain , isAccelerating && fuel > 0, isReversing && fuel > 0, isJumping);
 
     if (isJumping) {
       Future.delayed(const Duration(milliseconds: 100), () {
@@ -97,6 +98,20 @@ class GameController {
       }
     }
 
+    // Check obstacle collisions
+    for (var obstacle in terrain.obstacles) {
+      if (obstacle.collidesWith(vehicle.x, vehicle.y, 25)) {
+        // Collision detected - reduce speed significantly
+        vehicle.velocityX *= 0.3;
+        fuel -= 2.0; // Penalty for hitting obstacle
+        if (fuel < 0) fuel = 0;
+
+        // Apply bounce back effect
+        vehicle.velocityX -= 1.5;
+        vehicle.velocityY = -8;
+      }
+    }
+
     // Collect coins
     terrain.coins.removeWhere((coin) {
       double dx = vehicle.x - coin.dx;
@@ -105,7 +120,7 @@ class GameController {
 
       if (distanceToVehicle < 1000) {
         coins++;
-        fuel = (fuel + 5).clamp(0.0, 100.0); // Increased reward from 3 to 5
+        fuel = (fuel + 8).clamp(0.0, 100.0); // Increased from 5 to 8
         return true;
       }
       return false;
@@ -118,7 +133,7 @@ class GameController {
       double distanceToVehicle = dx * dx + dy * dy;
 
       if (distanceToVehicle < 1000) {
-        fuel = (fuel + 25).clamp(0.0, 100.0); // Increased from 20 to 25
+        fuel = (fuel + 30).clamp(0.0, 100.0); // Increased from 25 to 30
         return true;
       }
       return false;
@@ -160,7 +175,7 @@ class GameController {
     isJumping = false;
     isPaused = false;
     frameCount = 0;
-    terrainChangeCounter = 0; // Reset terrain timer
+    terrainChangeCounter = 0;
     physics.canJump = true;
   }
 

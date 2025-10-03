@@ -1,4 +1,6 @@
 import 'dart:math';
+import 'package:hillclimb/Models/Obstacle.dart';
+
 import '../Models/Terian.dart';
 import '../Models/Vehical.dart';
 
@@ -16,7 +18,7 @@ class PhysicsEngine {
 
   bool canJump = true;
 
-  void update(Vehicle vehicle, Terrain terrain, bool isAccelerating, bool isReversing, bool isJumping) {
+  void update(Vehicle vehicle, TerrainModels terrain, bool isAccelerating, bool isReversing, bool isJumping) {
     // Apply gravity
     vehicle.velocityY += gravity;
 
