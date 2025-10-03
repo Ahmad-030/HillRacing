@@ -25,6 +25,10 @@ class GameController {
   int frameCount = 0;
   double maxDistanceReached = 0;
 
+  // Terrain change timer (15 seconds = 900 frames at 60fps)
+  int terrainChangeCounter = 0;
+  final int terrainChangeInterval = 900; // 15 seconds
+
   GameController({required this.onUpdate}) {
     _initializeVehiclePosition();
   }
@@ -50,6 +54,13 @@ class GameController {
 
   void _update() {
     frameCount++;
+    terrainChangeCounter++;
+
+    // Change terrain every 15 seconds
+    if (terrainChangeCounter >= terrainChangeInterval) {
+      terrainChangeCounter = 0;
+      terrain.forceNextSegment();
+    }
 
     // REDUCED FUEL CONSUMPTION - Only when actively using controls
     if (isAccelerating && fuel > 0) {
@@ -149,6 +160,7 @@ class GameController {
     isJumping = false;
     isPaused = false;
     frameCount = 0;
+    terrainChangeCounter = 0; // Reset terrain timer
     physics.canJump = true;
   }
 

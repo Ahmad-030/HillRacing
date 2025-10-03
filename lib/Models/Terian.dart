@@ -81,6 +81,11 @@ class Terrain {
     generateSegment(currentSegment);
   }
 
+  // Force terrain to change to next segment type
+  void forceNextSegment() {
+    currentSegment++;
+  }
+
   double getHeightAt(double x) {
     // Find the segment containing x
     for (int i = 0; i < points.length - 1; i++) {

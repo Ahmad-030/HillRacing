@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../Game/Game_Controller.dart';
 import '../Game/GameOver.dart';
+import '../Game/PauseScreen.dart';
 import '../Widget/GameCanvas.dart';
 
 class GameScreen extends StatefulWidget {
@@ -50,81 +51,23 @@ class _GameScreenState extends State<GameScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.9),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.orange, width: 2),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'PAUSED',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 30),
-              ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.pop(context);
-                  setState(() {
-                    controller.togglePause();
-                  });
-                },
-                icon: const Icon(Icons.play_arrow),
-                label: const Text('RESUME'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 15),
-              ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.pop(context);
-                  setState(() {
-                    controller.restart();
-                  });
-                },
-                icon: const Icon(Icons.refresh),
-                label: const Text('RESTART'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
-                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 15),
-              ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.pop(context);
-                },
-                icon: const Icon(Icons.exit_to_app),
-                label: const Text('EXIT'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+      builder: (context) => PauseDialog(
+        onResume: () {
+          Navigator.pop(context);
+          setState(() {
+            controller.togglePause();
+          });
+        },
+        onRestart: () {
+          Navigator.pop(context);
+          setState(() {
+            controller.restart();
+          });
+        },
+        onExit: () {
+          Navigator.pop(context);
+          Navigator.pop(context);
+        },
       ),
     );
   }
