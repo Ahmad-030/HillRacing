@@ -90,12 +90,14 @@ class Terrain {
       }
     }
 
-    // If beyond current terrain, extend it
-    if (x > points.last.dx - 1000) {
+    // FIXED: If beyond current terrain, extend it automatically
+    if (points.isNotEmpty && x > points.last.dx - 2000) {
       extendTerrain();
+      // Recursively call to get the height at the new extended terrain
+      return getHeightAt(x);
     }
 
-    return points.last.dy;
+    return points.isNotEmpty ? points.last.dy : 200.0;
   }
 
   double getSlopeAt(double x) {

@@ -16,6 +16,7 @@ class GameController {
   bool isJumping = false;
   bool isGameOver = false;
   bool gameOverShown = false;
+  bool isPaused = false;
 
   double fuel = 100.0;
   double distance = 0.0;
@@ -25,12 +26,10 @@ class GameController {
   double maxDistanceReached = 0;
 
   GameController({required this.onUpdate}) {
-    // Initialize vehicle position based on terrain
     _initializeVehiclePosition();
   }
 
   void _initializeVehiclePosition() {
-    // Get the terrain height at the starting position and place vehicle there
     double groundHeight = terrain.getHeightAt(vehicle.x);
     vehicle.y = groundHeight;
     vehicle.velocityY = 0;
@@ -38,27 +37,31 @@ class GameController {
 
   void start() {
     _gameTimer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
-      if (isGameOver) return;
+      if (isGameOver || isPaused) return;
       _update();
       onUpdate();
     });
   }
 
+  void togglePause() {
+    isPaused = !isPaused;
+    onUpdate();
+  }
+
   void _update() {
     frameCount++;
 
-    // Consume fuel
+    // REDUCED FUEL CONSUMPTION - Only when actively using controls
     if (isAccelerating && fuel > 0) {
-      fuel -= 0.10;
+      fuel -= 0.05; // Reduced from 0.10
     }
 
-    // Reversing consumes more fuel
     if (isReversing && fuel > 0) {
-      fuel -= 0.15;
+      fuel -= 0.08; // Reduced from 0.15
     }
 
-    // Passive fuel consumption
-    fuel -= 0.02;
+    // Minimal passive fuel consumption
+    fuel -= 0.01; // Reduced from 0.02
 
     if (fuel <= 0) {
       fuel = 0;
@@ -66,17 +69,16 @@ class GameController {
       return;
     }
 
-    // Update physics with jump and reverse
+    // Update physics
     physics.update(vehicle, terrain, isAccelerating && fuel > 0, isReversing && fuel > 0, isJumping);
 
-    // Reset jump after applied
     if (isJumping) {
       Future.delayed(const Duration(milliseconds: 100), () {
         isJumping = false;
       });
     }
 
-    // Update distance (only forward movement counts)
+    // Update distance
     if (vehicle.velocityX > 0) {
       distance += vehicle.velocityX * 0.1;
       if (distance > maxDistanceReached) {
@@ -92,7 +94,7 @@ class GameController {
 
       if (distanceToVehicle < 1000) {
         coins++;
-        fuel = (fuel + 3).clamp(0.0, 100.0);
+        fuel = (fuel + 5).clamp(0.0, 100.0); // Increased reward from 3 to 5
         return true;
       }
       return false;
@@ -105,7 +107,7 @@ class GameController {
       double distanceToVehicle = dx * dx + dy * dy;
 
       if (distanceToVehicle < 1000) {
-        fuel = (fuel + 20).clamp(0.0, 100.0);
+        fuel = (fuel + 25).clamp(0.0, 100.0); // Increased from 20 to 25
         return true;
       }
       return false;
@@ -127,14 +129,14 @@ class GameController {
   }
 
   void jump() {
-    isJumping = true;
+    if (!isPaused) {
+      isJumping = true;
+    }
   }
 
   void restart() {
     vehicle.reset();
     terrain.generate();
-
-    // Re-initialize vehicle position on new terrain
     _initializeVehiclePosition();
 
     fuel = 100;
@@ -145,6 +147,7 @@ class GameController {
     isAccelerating = false;
     isReversing = false;
     isJumping = false;
+    isPaused = false;
     frameCount = 0;
     physics.canJump = true;
   }

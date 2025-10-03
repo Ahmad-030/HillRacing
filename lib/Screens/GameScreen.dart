@@ -46,6 +46,89 @@ class _GameScreenState extends State<GameScreen> {
     super.dispose();
   }
 
+  void _showPauseDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.orange, width: 2),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'PAUSED',
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 30),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  setState(() {
+                    controller.togglePause();
+                  });
+                },
+                icon: const Icon(Icons.play_arrow),
+                label: const Text('RESUME'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 15),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  setState(() {
+                    controller.restart();
+                  });
+                },
+                icon: const Icon(Icons.refresh),
+                label: const Text('RESTART'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 15),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                },
+                icon: const Icon(Icons.exit_to_app),
+                label: const Text('EXIT'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -70,7 +153,7 @@ class _GameScreenState extends State<GameScreen> {
           if (!controller.isGameOver) _buildHUD(),
 
           // Controls
-          if (!controller.isGameOver) _buildControls(),
+          if (!controller.isGameOver && !controller.isPaused) _buildControls(),
         ],
       ),
     );
@@ -110,6 +193,29 @@ class _GameScreenState extends State<GameScreen> {
                       isSmall: isSmallScreen,
                     ),
                   ],
+                ),
+
+                // Center - Pause Button
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      controller.togglePause();
+                    });
+                    _showPauseDialog();
+                  },
+                  child: Container(
+                    padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.65),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.orange, width: 2),
+                    ),
+                    child: Icon(
+                      Icons.pause,
+                      color: Colors.orange,
+                      size: isSmallScreen ? 20 : 24,
+                    ),
+                  ),
                 ),
 
                 // Right side stats

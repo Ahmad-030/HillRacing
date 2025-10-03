@@ -20,8 +20,8 @@ class PhysicsEngine {
     // Apply gravity
     vehicle.velocityY += gravity;
 
-    // Get terrain height at vehicle center
-    double groundY = terrain.getHeightAt(vehicle.x);
+    // Get terrain height at vehicle center (adjusted for wheel radius)
+    double groundY = terrain.getHeightAt(vehicle.x) - vehicle.wheelRadius;
     double distanceToGround = vehicle.y - groundY;
 
     // Check if on ground
@@ -36,8 +36,8 @@ class PhysicsEngine {
       // Get front and rear wheel positions for rotation
       double frontWheelX = vehicle.x + 20;
       double rearWheelX = vehicle.x - 20;
-      double frontGroundY = terrain.getHeightAt(frontWheelX);
-      double rearGroundY = terrain.getHeightAt(rearWheelX);
+      double frontGroundY = terrain.getHeightAt(frontWheelX) - vehicle.wheelRadius;
+      double rearGroundY = terrain.getHeightAt(rearWheelX) - vehicle.wheelRadius;
 
       // Calculate target rotation based on terrain slope
       double slopeDy = frontGroundY - rearGroundY;
@@ -46,11 +46,9 @@ class PhysicsEngine {
 
       // Add tilt based on acceleration/braking
       if (isAccelerating && vehicle.velocityX > 1) {
-        // Tilt back (nose up) when accelerating
-        targetRotation -= 0.08;
+        targetRotation -= 0.08; // Tilt back when accelerating
       } else if (isReversing) {
-        // Tilt forward (nose down) when braking
-        targetRotation += 0.08;
+        targetRotation += 0.08; // Tilt forward when braking
       }
 
       // Smooth rotation transition
@@ -75,12 +73,21 @@ class PhysicsEngine {
         canJump = false;
       }
 
-      // Ground friction
-      vehicle.velocityX *= groundFriction;
+      // FIXED: Stronger ground friction to prevent automatic backward movement
+      if (!isAccelerating && !isReversing) {
+        vehicle.velocityX *= 0.88; // Stronger friction when idle
+      } else {
+        vehicle.velocityX *= groundFriction;
+      }
 
       // Slope gravity effect
       double slope = terrain.getSlopeAt(vehicle.x);
       vehicle.velocityX -= sin(slope) * 0.25;
+
+      // FIXED: Stop vehicle completely when velocity is very low and no input
+      if (!isAccelerating && !isReversing && vehicle.velocityX.abs() < 0.5) {
+        vehicle.velocityX *= 0.7; // Quickly reduce to zero
+      }
 
       // Reset angular velocity on ground
       vehicle.angularVelocity *= 0.3;
@@ -88,7 +95,7 @@ class PhysicsEngine {
       // Air physics
       vehicle.velocityX *= airResistance;
 
-      // Rotation in air based on controls - enhanced tilt
+      // Rotation in air based on controls
       if (isAccelerating) {
         vehicle.angularVelocity -= 0.003; // Back flip
       } else if (isReversing) {
@@ -106,9 +113,10 @@ class PhysicsEngine {
     vehicle.x += vehicle.velocityX;
     vehicle.y += vehicle.velocityY;
 
-    // Prevent vehicle from going below terrain
-    if (vehicle.y > groundY) {
-      vehicle.y = groundY;
+    // FIXED: Prevent vehicle from going below terrain (with wheel radius adjustment)
+    double currentGroundY = terrain.getHeightAt(vehicle.x) - vehicle.wheelRadius;
+    if (vehicle.y > currentGroundY) {
+      vehicle.y = currentGroundY;
       vehicle.velocityY = 0;
     }
 
